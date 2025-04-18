@@ -39,7 +39,41 @@
 (scroll-bar-mode -1)
 
 ;; Set default font
-(set-face-attribute 'default nil :family "Fira Code" :height 200)
+;; (set-face-attribute 'default nil :family "Fira Code" :height 200)
+(set-face-attribute 'default nil :font "FiraCode Nerd Font" :height 200)
+
+;; 1) Ensure private‑use area (PUA) glyphs come from FiraCode Nerd Font
+(set-fontset-font t
+                  '(#xe000 . #xf8fff)   ;; covers U+E000…U+F8FF PUA block
+                  (font-spec :family "FiraCode Nerd Font")
+                  nil 'prepend)
+
+;; 2) Also cover the 'symbol' script (some icons categorize there)
+(set-fontset-font t 'symbol
+                  (font-spec :family "FiraCode Nerd Font")
+                  nil 'prepend)
+
+
+
+;;; Ligatures
+
+(use-package ligature
+  :straight (ligature :type git :host github :repo "mickeynp/ligature.el")
+  :config
+  ;; Enable all default ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode
+    '("www" "**" "***" "**/" "*>" "*/" "\\\\" "\\\\\\" "{-" "[]" "::"
+      ":::" ":=" "!!" "!=" "!==" "-}" "!--" "->" "->>" "-<" "-<<" "-~"
+      "#{" "#[" "##" "###" "####" "#(" "#?" "#_" "#_(" ".-" ".=" ".."
+      "..<" "..." "?=" "??" ";;" "/*" "/**" "/=" "/==" "/>" "//" "///"
+      "&&" "||" "||=" "|=" "|>" "^=" "$>" "++" "+++" "+>" "=:=" "=="
+      "===" "==>" "=>" "=>>" "<=" "=<<" "=/=" ">-" ">=" ">=>" ">>"
+      ">>-" ">>=" ">>>" "<*" "<*>" "<|" "<|>" "<$" "<$>" "<!--" "<-"
+      "<--" "<->" "<+" "<+>" "<=" "<==" "<=>" "<>" "<<" "<<-" "<<="
+      "<<<" "<~" "<~~" "~@" "~-" "~=" "~>" "~~" "~~>" "%%"))
+  
+  (global-ligature-mode t))
+
 
 ;; Enable relative line numbers globally.
 (global-display-line-numbers-mode t)
@@ -58,6 +92,21 @@
   :config
   (setq lsp-idle-delay 0.1
         lsp-prefer-flymake nil))
+
+(use-package ruff-format
+  :ensure t
+  :hook (python-mode . ruff-format-on-save-mode))
+
+(use-package python-black
+  :ensure t
+  :demand t
+  :after python
+  :hook (python-mode . python-black-on-save-mode-enable-dwim))
+
+(use-package py-isort
+  :ensure t
+  :hook (before-save . py-isort-before-save))
+
 
 (use-package lsp-pyright
   :after lsp-mode
